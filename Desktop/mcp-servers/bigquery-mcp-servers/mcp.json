@@ -1,0 +1,13 @@
+{
+    "servers": {
+        "bigquery-mcp": {
+            "type": "http",
+            "url": "https://YOUR_CLOUD_RUN_URL/sse",
+            "requestInit": {
+                "headers": {
+                    "Authorization": "Bearer YOUR_MCP_TOKEN"
+                }
+            }
+        }
+    }
+}

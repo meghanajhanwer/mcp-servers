@@ -1,0 +1,45 @@
+{
+    "servers": {
+        "bigquery-mcp-local": {
+            "type": "http",
+            "url": "http://localhost:8080/sse",
+            "requestInit": {
+                "headers": {
+                    "Authorization": "Bearer NDYzS8VqeS4LMYr4g_BEfWHwg_yKHfbiefHIGvGxqOo"
+                }
+            }
+        }
+
+        // -----------------------------
+        // Enable GitHub MCP (uncomment)
+        // -----------------------------
+        /*
+    ,
+    "github-mcp-local": {
+      "type": "http",
+      "url": "http://localhost:8081/sse",
+      "requestInit": {
+        "headers": {
+          "Authorization": "Bearer PASTE_GH_COPILOT_TEST_TOKEN"
+        }
+      }
+    }
+    */
+
+        // ------------------------------
+        // Enable Outlook MCP (uncomment)
+        // ------------------------------
+        /*
+    ,
+    "outlook-mcp-local": {
+      "type": "http",
+      "url": "http://localhost:8082/sse",
+      "requestInit": {
+        "headers": {
+          "Authorization": "Bearer PASTE_OL_COPILOT_TEST_TOKEN"
+        }
+      }
+    }
+    */
+    }
+}

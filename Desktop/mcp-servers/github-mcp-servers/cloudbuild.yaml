@@ -1,0 +1,46 @@
+substitutions:
+  _REGION: europe-west2
+  _SERVICE: github-mcp
+  _AR_REPO: mcp-repo
+
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+      - "."
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - "${_SERVICE}"
+      - "--image"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+      - "--region"
+      - "${_REGION}"
+      - "--platform"
+      - managed
+      - "--timeout"
+      - "3600"
+      # Use your chosen runtime SA (or reuse a shared one)
+      - "--service-account"
+      - "mcp-runtime@${PROJECT_ID}.iam.gserviceaccount.com"
+      # Set MCP tokens by secret (recommended in prod)
+      # - "--set-secrets"
+      # - "MCP_TOKENS_SECRET_PAYLOAD=mcp-gh-tokens:latest"
+      # GitHub token should be stored in Secret Manager too for prod
+      # - "--set-secrets"
+      # - "GITHUB_TOKEN_SECRET_PAYLOAD=github-token:latest"
+      - "--set-env-vars"
+      - "ENV=prod,LOG_LEVEL=INFO,GITHUB_API_BASE_URL=https://api.github.com,GITHUB_TIMEOUT_SECONDS=15"
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"

@@ -1,0 +1,21 @@
+# env / secrets
+.env
+.env.*
+*.key
+*.pem
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+
+# IDEs
+.idea/
+.vscode/
+
+# build artifacts
+dist/
+build/
+*.log

@@ -1,0 +1,45 @@
+substitutions:
+  _REGION: europe-west2
+  _SERVICE: outlook-mcp
+  _AR_REPO: mcp-repo
+
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+      - "."
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - "${_SERVICE}"
+      - "--image"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+      - "--region"
+      - "${_REGION}"
+      - "--platform"
+      - managed
+      - "--timeout"
+      - "3600"
+      # Use your chosen runtime SA (or reuse a shared one)
+      - "--service-account"
+      - "mcp-runtime@${PROJECT_ID}.iam.gserviceaccount.com"
+      # Secrets (enable these when you decide Cloud Run strategy)
+      # - "--set-secrets"
+      # - "MCP_TOKENS_SECRET_PAYLOAD=mcp-outlook-tokens:latest"
+      # - "--set-secrets"
+      # - "MS_TENANT_ID=ms-tenant-id:latest,MS_CLIENT_ID=ms-client-id:latest"
+      - "--set-env-vars"
+      - "ENV=prod,LOG_LEVEL=INFO,MS_SCOPES=Calendars.Read offline_access,USER_TIMEZONE=Europe/London,OUTLOOK_MAX_DAYS_RANGE=14,OUTLOOK_MAX_EVENTS_RETURN=50"
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"

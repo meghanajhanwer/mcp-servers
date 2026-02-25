@@ -1,0 +1,46 @@
+# cloudbuild.yaml (fixed for `gcloud builds submit`)
+# Uses ${BUILD_ID} for the image tag so it always exists in manual builds.
+# Later, when you move to Cloud Build Triggers, you can switch to ${SHORT_SHA} if you want.
+
+substitutions:
+  _REGION: europe-west2
+  _SERVICE: bigquery-mcp
+  _AR_REPO: mcp-repo
+
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+      - "."
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - "${_SERVICE}"
+      - "--image"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
+      - "--region"
+      - "${_REGION}"
+      - "--platform"
+      - managed
+      - "--allow-unauthenticated"
+      - "--timeout"
+      - "3600"
+      - "--service-account"
+      - "mcp-runtime@${PROJECT_ID}.iam.gserviceaccount.com"
+      - "--set-secrets"
+      - "MCP_TOKENS_SECRET_PAYLOAD=mcp-bq-tokens:latest"
+      - "--set-env-vars"
+      - "ENV=prod,LOG_LEVEL=INFO,BQ_PROJECT_ID=${PROJECT_ID},BQ_LOCATION=EU,BQ_MAX_BYTES_BILLED=5000000000,BQ_DEFAULT_LIMIT=500"
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO}/${_SERVICE}:${BUILD_ID}"
